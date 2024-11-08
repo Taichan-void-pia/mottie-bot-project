@@ -1,0 +1,7 @@
+.glitchdotcom.json
+.node-gyp
+node-modules
+.data/
+models/
+LICENSE
+regist-commands.mjs
