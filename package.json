@@ -1,0 +1,41 @@
+{
+  "name": "minipotato-bot-by-eoi",
+  "version": "1.0.0",
+  "description": "Mottie bot Thanks for MiniPotato Bot by EOi ",
+  "main": "main.mjs",
+  "scripts": {
+    "start": "node main.mjs"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^1.9.0",
+    "@discordjs/opus": "^0.9.0",
+    "@discordjs/voice": "^0.17.0",
+    "@gonetone/get-youtube-id-by-url": "^1.0.1",
+    "axios": "^1.7.7",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "libsodium-wrappers": "^0.7.15",
+    "rss-parser": "^3.13.0",
+    "sequelize": "^6.37.3",
+    "sequelize-cli": "^6.6.2",
+    "sqlite3": "^5.1.7",
+    "youtubei": "^1.4.1",
+    "child-process": "^1.0.2",
+    "openai": "^4.68.4",
+    "google-tts-api": "^2.0.2"
+  },
+  "engines": {
+    "node": "16.x"
+  },
+  "repository": {
+    "url": "https://glitch.com/edit/#!/minipotato-bot-by-eoi"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "mottie",
+    "discord"
+  ]
+}
