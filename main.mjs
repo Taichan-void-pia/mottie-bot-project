@@ -592,6 +592,11 @@ function listMembersWithRole(guildId, roleId, channel) {
     let link = "none"
     if(message.content.includes("link:")){
       link =　message.content.slice(message.content.indexOf("link:")+5)
+    let dm_file_url;
+    if(message.attachments){
+      dm_file_url = message.attachments.map(attachment => attachment.url)
+      link = dm_file_url[0]
+            }
     }
     if(link === "none"){
       if (Math.random() <　0.5){
