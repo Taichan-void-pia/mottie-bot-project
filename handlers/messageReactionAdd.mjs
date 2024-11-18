@@ -6,7 +6,7 @@ export default async(reaction, user) => {
   const member = await message.guild.members.fetch(user);
   if (user.bot) return;
   //編集済ならループから抜け出す。
-  if (message.editedAt) {
+  if (message.editedAt&&message.author.id != "558964198994870272") {
     message.reply("壁、修復済み(編集済)");
     return;
     

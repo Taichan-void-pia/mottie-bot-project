@@ -79,7 +79,7 @@ export const client = new Client({
 
 client.commands = new Collection();
 
-function sleep(ms) {
+export async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -325,6 +325,7 @@ client.on("messageCreate", async (message) => {
   const messageLinkRegex = /https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
   const match = message.content.match(messageLinkRegex);
   if (match) {
+    try{
     const guildId = match[1];
     const channelId = match[2];
     const messageId = match[3];
@@ -342,7 +343,11 @@ client.on("messageCreate", async (message) => {
     // リプライにembedを含めて送信
 
     await message.reply({content: "ﾈｪﾐﾃﾐﾃ",embeds: [embed]
-                        })}
+                        })
+    }catch(error){
+      console.error("メッセージの送信中にエラーが発生しました。:",error)
+    }
+  }
  
   
   //pingを取得
