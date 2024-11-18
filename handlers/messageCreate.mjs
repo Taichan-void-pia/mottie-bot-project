@@ -1,7 +1,7 @@
 import { ndnDice } from "../commands/utils/dice.mjs"
-import {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle} from "discord.js";
+import {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,ChannelType} from "discord.js";
 import { execSync } from 'child_process'
-import {client} from '/app/main.mjs'
+import {client,sleep} from '/app/main.mjs'
 export default async(message) => {
   if (message.mentions.has(message.client.user)) {
 message.reply(`<@${message.author.id}> は何か文句でも？`
@@ -20,6 +20,11 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
       await message.channel.send("<:1000001843:1294657068304957510><:1000001843:1294657068304957510><:1000001843:1294657068304957510>=͟͟͞💩")
       await message.delete();
     }
+  //オウム返し
+  if(message.content.startsWith("!@")){
+    message.channel.send(message.content.replace("!@",""))
+    return;
+  }
   if((message.content).startsWith('exec')&&message.author.id !== "558964198994870272")return message.reply("taichan_にしか使えないのです。ごめんなさいなのです。(乗っ取りを防ぐため)")
   if ((message.content).startsWith('exec')) {
     const detect =　((message.content).startsWith('execdl'))
@@ -210,7 +215,11 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
           .setCustomId('reply')
           .setLabel('返信')
           .setStyle(ButtonStyle.Primary)
-　　message.channel.send({content: String(message.content.replaceAll('x.com','fxtwitter.com') + '\nAccount | ' +String(author_id)+"\nAuthor | "+message.author.tag),
+    let discord_nickname = message.author.tag 
+    if(message.channel.type === 0){
+      discord_nickname = message.member.nickname
+    }
+　　message.channel.send({content: String(message.content.replaceAll('x.com','fxtwitter.com') + '\nAccount | ' +String(author_id)+"\nAuthor | "+discord_nickname),
     components:[new ActionRowBuilder().addComponents(reply,heart,retweet,row)]
             }).then(async (sendreact) => {
     sendreact.react("💓") //送ったメッセージにリアクション

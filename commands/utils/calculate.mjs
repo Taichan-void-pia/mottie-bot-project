@@ -6,7 +6,13 @@ export const data = new SlashCommandBuilder()
   .addStringOption(option =>option
       .setName('type')
       .setDescription('タイプを選択しろ！')
-      .setRequired(true))
+      .setRequired(true)
+      .addChoices(
+    { name: 'Expand', value: 'expand' },
+    { name: 'Solve', value: 'solve' },
+    { name: 'Factor', value: 'factor' },
+    { name: 'Default', value: 'default'},)
+                  )
   .addStringOption(option2 =>　option2
       .setName('formula')
       .setDescription('数式を入力しろ！')
@@ -24,7 +30,7 @@ export async function execute(interaction){
     if(type === "expand"){
       await interaction.deferReply()
       const ans = nerdamer.expand(formula);
-      await interaction.editReply(formula+"を展開してやったぜ。\n計算結果:\n"+"```"+ans.text().replaceAll("*","")+"```");
+      await interaction.editReply(formula+"を展開してやったぜ。\n計算結果:\n"+"```"+ans.text()+"```");
     }
     else if(type === "solve"){
       await interaction.deferReply()
@@ -35,7 +41,12 @@ export async function execute(interaction){
     else if(type === "factor"){
       await interaction.deferReply()
       const ans = nerdamer.factor(formula);
-      await interaction.editReply(formula+"を因数分解してやったぜ。\n計算結果:\n"+"```"+ans.text().replaceAll("*","")+"```");
+      await interaction.editReply(formula+"を因数分解してやったぜ。\n計算結果:\n"+"```"+ans.text()+"```");
+    }
+    else if(type === "default"){
+      await interaction.deferReply()
+      const ans = String(nerdamer(formula).symbol.multiplier.num.value);
+      await interaction.editReply(formula+"を計算してやったぜ。\n計算結果:\n"+"```"+ans+"```");
     }
   }catch(error){
     console.error(error)
