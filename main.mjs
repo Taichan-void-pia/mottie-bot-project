@@ -56,9 +56,9 @@ app.post("/", function (req, res) {
   res.send("POST response by glitch");
 });
 app.get("/", function (req, res) {
-  res.send(
-    '<a href="https://note.com/exteoi/n/n0ea64e258797</a> に解説があります。'
-  );
+  //app.use("/",express.static('statics'))
+  res.set('Content-Type', 'text/html');
+  res.send('Go to Page of <a href="https://note.com/exteoi/n/n0ea64e258797">Explanation</a> by Exteoi');
 });
 
 export const client = new Client({
@@ -114,7 +114,7 @@ for (const file of handlerFiles) {
     handlers.set(file.slice(0, -4), module);
   });
 }
-
+export const colorcode = "#c39143"
 client.on("interactionCreate", async (interaction) => {
   //メッセージ消去
   if (interaction.customId === "deletelog"){
@@ -540,7 +540,64 @@ function listMembersWithRole(guildId, roleId, channel) {
         "\n"
       )}\n\n**${memberCount}人**の人間がこのロールを持っています！`
     : `> **${role.name}** ロールを持っている人間はいません！`;
-  channel.send(responseMessage);}
+  channel.send(responseMessage);
+}
+  //ボイチャ接続時間を取得して表示
+  const Regex = "vctimelist"; // コマンドの正規表現
+  if (command === Regex) {
+    listMembersSumJoining(message.guild.id,message.channel);
+    }
+function listMembersSumJoining(guildId,channel) {
+  let test
+  let array =[]
+  let message_unite = ""
+    const obj = JSON.parse(fs.readFileSync('voicecounter.json').toString());
+    for (let i = 0; i < obj.length; i += 2){
+      const guild_id = obj[i]
+      if(guild_id === guildId){
+        for(let j=0; j<obj[i+1].length; j += 2){
+          const member_id = obj[i+1][j]
+          const time2 = parseInt(obj[i+1][j+1][1],10)
+          array.push([time2,member_id])
+          test = true
+          }
+      }
+    }
+  if(test){
+    array.sort(sorting)
+      function sorting(first, second){
+        if (first[0] > second[0]){
+          return -1;
+        }else if (first[0] < second[0]){
+          return 1;
+        }else{
+          return 0;
+        }
+      }
+    let cnt = 0
+    for(const unite of array){
+      cnt++
+      const member_text = `<@${unite[1]}>`
+      const time = Math.round((unite[0]/60000))
+      const dis_hour = Math.floor(time/60)
+      const dis_min = time%60
+      const time_text = `${dis_hour}時間${dis_min}分`
+      const suffix = String((cnt <= 3) ? "**":"")
+      message_unite = message_unite +"\n"+suffix+Math.round(cnt)+"位"+suffix+":"+member_text+" **"+time_text+"**"
+      }
+    const embed = new EmbedBuilder()
+    .setTitle("ボイスチャンネル接続時間ランキング")
+    .setDescription(message_unite)
+    .setAuthor({name:String(`${message.guild.name}`),iconURL: String(message.guild.iconURL())})
+    .setColor ("#1e28d2")
+    .setFooter({text:String(`Created by ${message.author.username}`),iconURL:String(message.author.displayAvatarURL())})
+    .setTimestamp();
+    channel.send({embeds:[embed]})
+  }else{
+    channel.send("データが存在しないか消された可能性があります。")
+    return
+  }
+}
   
   if(command ===　"join"){
    // コマンドを実行したメンバーがいるボイスチャンネルを取得
