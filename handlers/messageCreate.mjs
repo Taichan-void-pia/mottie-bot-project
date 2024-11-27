@@ -1,7 +1,7 @@
 import { ndnDice } from "../commands/utils/dice.mjs"
 import {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,ChannelType} from "discord.js";
 import { execSync } from 'child_process'
-import {client,sleep} from '/app/main.mjs'
+import {client} from '/app/main.mjs'
 export default async(message) => {
   if (message.mentions.has(message.client.user)) {
 message.reply(`<@${message.author.id}> は何か文句でも？`
@@ -10,7 +10,7 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
   
   
   //指定した文字かどうかを確認する
-  if (message.content ===　"モッチーさん。誕生日祝って。")
+  if (message.content ===　"モッチーさん。祝って。")
     { 
       await message.channel.send("おめでとおおおおお!🎉")
       await message.delete();
