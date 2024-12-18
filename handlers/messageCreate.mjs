@@ -1,13 +1,14 @@
-import { ndnDice } from "../commands/utils/dice.mjs"
+import { ndnDice } from "../commands/utils/dice.mjs";
 import {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,ChannelType} from "discord.js";
-import { execSync } from 'child_process'
-import {client} from '/app/main.mjs'
+import { execSync } from 'child_process';
+import {client,sleep} from '/app/main.mjs';
+import {google} from 'googleapis';
 export default async(message) => {
+  
   if (message.mentions.has(message.client.user)) {
 message.reply(`<@${message.author.id}> は何か文句でも？`
     );
   }
-  
   
   //指定した文字かどうかを確認する
   if (message.content ===　"モッチーさん。祝って。")
@@ -216,25 +217,123 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
           .setLabel('返信')
           .setStyle(ButtonStyle.Primary)
     let discord_nickname = message.author.tag 
-    if(message.channel.type === 0){
+    if(message.channel.type === 0 && message.member.nickname != null){
       discord_nickname = message.member.nickname
     }
-　　message.channel.send({content: String(message.content.replaceAll('x.com','fxtwitter.com') + '\nAccount | ' +String(author_id)+"\nAuthor | "+discord_nickname),
-    components:[new ActionRowBuilder().addComponents(reply,heart,retweet,row)]
-            }).then(async (sendreact) => {
-    sendreact.react("💓") //送ったメッセージにリアクション
-    message.delete();
-                //if(sendreact.embeds[0]){
-   // const twitterembed = new EmbedBuilder()
-      //   .setTitle(String((String(sendreact.embeds[0].title))))
-        // .setURL(String(sendreact.embeds[0].url))
-        // .setDescription(String((String(sendreact.embeds[0].description))))
-        // .setImage(String((String(sendreact.embeds[0].image))))
-        // .setThumbnail(String((String(sendreact.embeds[0].thumbnail))));
-                //  message.channel.send({embed:[twitterembed],components:[row]})
-                 // sendreact.delete();
-            })
+    message.channel.send({content: String(message.content.replaceAll('x.com','fxtwitter.com') + '\nAccount | ' +String(author_id)+"\nAuthor | "+discord_nickname),components:[new ActionRowBuilder().addComponents(reply,heart,retweet,row)]
+                         }).then(async (sendreact) => {
+      sendreact.react("💓") //送ったメッセージにリアクション
+      message.delete();
+    })
   };
-   
-  };
+  const sheets = google.sheets('v4');
+  const creds = {
+  "type": "service_account",
+  "project_id": process.env.ProjectId,
+  "private_key_id": process.env.ProjectKeyId,
+  "private_key": process.env.ProjectKey,
+  "client_email": process.env.ClientEmail,
+  "client_id": process.env.clientId,
+  "auth_uri": process.env.auth_uri,
+  "token_uri": process.env.token_uri,
+  "auth_provider_x509_cert_url": process.env.auth_provider_x509_cert_url,
+  "client_x509_cert_url": process.env.client_x509_cert_url,
+  "universe_domain": process.env.universe_domain
+    }
+  const sheet = `${process.env.SheetID}`;
+  const sheet_name = "DiscordGsheet"
+  //記録書込関数
+  if (message.content.startsWith("sheetreload ")) {
+    const data = message.content.replace(message.content.slice(0,12),"");
+    try {
+      await writeDataToSheet(sheet, sheet_name+"!B2", data);
+      message.channel.sendTyping();
+      sleep(1000*2);
+      message.reply("記録したぜ!")
+    } catch (error) {
+      console.error("書き込み中にエラーが発生しました:", error.message);
+      message.reply("なんかよめなかった！w");
+    }
+  }
+  if (message.content.startsWith("sheetwrite ")) {
+    const data = message.content.replace(message.content.slice(0,11),"");
+    const sheet_naming = data.slice(0,data.indexOf("/"))
+    const data2 = data.replace(sheet_naming+"/","")
+    try {
+      await appendDataToSheet(sheet, sheet_naming, data2);
+      message.reply("データ```\n"+data2+"\n```をGoogleSpreadsheetの"+sheet_naming+"に記録しました！");
+    } catch (error) {
+      console.error("データの記録中にエラーが発生しました:", error.message);
+      message.reply("なんかよめなかった！w");
+    }
+
+  }
+  //記録閲覧関数
+  if (message.content.startsWith("sheetview ")) {
+    const range = message.content.replace(message.content.slice(0,10),"");
+    try {
+      const Data = await readDataFromSheet(sheet, range);
+      const Message = Data[0][0];
+      message.reply(`${Message}`);
+    } catch (error) {
+      console.error("閲覧中にエラーが発生しました:", error.message);
+      message.reply("なんかよめなかった！w");
+    }
+  }
+  // Google Sheets API を使ってデータを追加
+async function appendDataToSheet(spreadsheetId, sheetName, data) {
+  const auth = await Authorize(); // 認証情報を取得
+  await sheets.spreadsheets.values.append({
+    auth,
+    spreadsheetId,
+    range: sheetName,
+    valueInputOption: "USER_ENTERED",
+    resource: {
+      values: [[data]],
+    },
+  });
+}
+  async function readDataFromSheet(spreadsheetId, range) {
+    try{
+    const auth = await Authorize(); // 認証情報を取得
+    const response = await sheets.spreadsheets.values.get({
+      auth,
+      spreadsheetId,
+      range,
+    });
+    const result = response.data.values;
+    return result;
+    }catch(err){
+      console.error('閲覧中にエラーが発生しました。:',err)
+    }
+  }
+  // Google Sheets API を使ってデータを書き込み
+  async function writeDataToSheet(spreadsheetId, range, values) {
+    const auth = await Authorize(); // 認証情報を取得
+    const response = await sheets.spreadsheets.values.update({
+      auth,
+      spreadsheetId,
+      range,
+      valueInputOption: "RAW", // 書き込みオプション
+      resource: {values: [[values]], // values を配列でラップします
+                },
+    });
+    return response.data;
+  }
+  async function Authorize(){
+    const jwtClient = new google.auth.JWT(
+      process.env.ClientEmail,
+      null,
+      process.env.PrivateKey.replace(/\\n/g, '\n'),
+      ['https://www.googleapis.com/auth/spreadsheets','https://www.googleapis.com/auth/drive']
+    );
+    try {
+      const resultJwtClient = await jwtClient.authorize();
+      //console.log(resultJwtClient);
+      return jwtClient
+    } catch (error) {
+      console.log("Auth Error: " + error);
+    }
+  }
+};
             

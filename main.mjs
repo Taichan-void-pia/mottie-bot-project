@@ -57,8 +57,8 @@ app.post("/", function (req, res) {
 });
 app.get("/", function (req, res) {
   //app.use("/",express.static('statics'))
-  res.set('Content-Type', 'text/html');
-  res.send('Go to Page of <a href="https://note.com/exteoi/n/n0ea64e258797">Explanation</a> by Exteoi');
+  //res.set('Content-Type', 'text/html');
+  res.send('<a href="https://note.com/exteoi/n/n0ea64e258797"に解説があります。');
 });
 
 export const client = new Client({
@@ -82,6 +82,10 @@ client.commands = new Collection();
 export async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+client.rest.on('rateLimited', (info) => {
+  console.warn(`Rate limit hit: ${JSON.stringify(info)}`);
+});
 
 
 const categoryFoldersPath = path.join(process.cwd(), "commands");
@@ -311,7 +315,6 @@ await handlers.get("voiceStateUpdate").default(oldState, newState);
 client.on("messageReactionAdd", async (reaction, user) => {
   await handlers.get("messageReactionAdd").default(reaction, user);
 });
-
 client.on("messageCreate", async (message) => {
   if (message.author.id == client.user.id || message.author.bot || message.system) return; //botの場合関数から抜け出す
     //prefixの設定
@@ -326,34 +329,38 @@ client.on("messageCreate", async (message) => {
   const match = message.content.match(messageLinkRegex);
   if (match) {
     try{
+    //メッセージ箇所取得
     const guildId = match[1];
     const channelId = match[2];
     const messageId = match[3];
     const targetGuild = await client.guilds.fetch(guildId);
     const targetChannel = targetGuild.channels.cache.get(channelId);
     const targetMessage = await targetChannel.messages.fetch(messageId);
+    //ファイル取得
+    let dm_file_url;
+    if(targetMessage.attachments){
+      dm_file_url = targetMessage.attachments.map(attachment => attachment.url);
+    }
+    //embedの設定
  　　  const embed = new EmbedBuilder()
       .setDescription(String(( targetMessage.content + "\n\n" + targetMessage.url)))
       .setURL (targetMessage.url)
       .setAuthor({name:String(`${targetGuild.name} | #${targetChannel.name}`),iconURL: String(targetGuild.iconURL())})
       .setColor ("#1e28d2")
       .setFooter({text:String(`Author |　${targetMessage.author.username}`),
-                 iconURL:String(targetMessage.author.displayAvatarURL())})
-
+                 iconURL:String(targetMessage.author.displayAvatarURL())});
     // リプライにembedを含めて送信
-
-    await message.reply({content: "ﾈｪﾐﾃﾐﾃ",embeds: [embed]
-                        })
+    const files_exist =　targetMessage.attachments.size > 0 ;//ファイルがあるか確認
+    if(!files_exist) {
+      await message.reply({embeds:[embed]});
+    }else{
+      await message.reply({embeds:[embed],files:dm_file_url});
+    }
     }catch(error){
       console.error("メッセージの送信中にエラーが発生しました。:",error)
     }
   }
- 
-  
-  //pingを取得
-  if (command ===　"ping"){
-		await message.reply(`(っo_o)╮=͟͟͞🏓Pong!\nWebSocket Ping: ${message.client.ws.ping}ms\nAPI Endpoint Ping: ${Date.now() - message.createdTimestamp}ms`);
-  }
+  //時間を取得
   if (command === "time"){
     //タイムゾーンを設定
     process.env.TZ = "Asia/Tokyo";
@@ -389,23 +396,25 @@ client.on("messageCreate", async (message) => {
 					.setLabel('🗑️')
 					.setStyle(ButtonStyle.Danger),
 			);
-    let dm_file_url =　""
+    let dm_file_url;
     if(message.attachments){
-      dm_file_url = message.attachments.map(attachment => attachment.url)
-      for (let i = 0; i < dm_file_url.length; i++) {
-      var dm_file_url2 = dm_file_url2 +"\n"+(dm_file_url[i]);
-      }
+      dm_file_url = message.attachments.map(attachment => attachment.url);
     }
-    sendMottie(`> DMを受け取りました\nFrom: **${message.author.tag}**\nMessage: ${message.content.replaceAll("orca ","")+dm_file_url2.replaceAll("undefined","")}`);
+    sendMottie(`> DMを受け取りました\nFrom: **${message.author.tag}**\nMessage: ${message.content.replaceAll("orca ","")}`,dm_file_url,message.attachments);
     message.channel.send("DMをtaichan_に送信したぜ!")
    if(message.content.startsWith("orca ")){
     try {
+    const files_exist = message.attachments.size > 0;
     const guildId = process.env.orcaServerId;
     const channelId = "936250853185183835";
     const guild = await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId);
     if (channel) {
-      await channel.send({content:`Orca-san,This is Mottie.This signal is sent from my DM. over.\nFrom: **${message.author.tag}**\n${message.content.replaceAll("orca ","")+dm_file_url2.replaceAll("undefined","")}`,components:[row]});
+      if(!files_exist){
+        await channel.send({content:`Orca-san,This is Mottie.This signal is sent from my DM. over.\nFrom: **${message.author.tag}**\n${message.content.replaceAll("orca ","")}`,components:[row]});
+      }else{
+        await channel.send({content:`Orca-san,This is Mottie.This signal is sent from my DM. over.\nFrom: **${message.author.tag}**\n${message.content.replaceAll("orca ","")}`,files:dm_file_url,components:[row]})
+      }
     }
     } catch (error) {
     console.error(
@@ -418,14 +427,19 @@ client.on("messageCreate", async (message) => {
   }
   
   //非同期関数処理sendMottie
-async function sendMottie(text) {
+async function sendMottie(text,file,attach) {
   try {
+    const files_exist = attach.size > 0;
     const guildId = process.env.mainServerId;
     const channelId = process.env.mainChannelId;
     const guild = await client.guilds.fetch(guildId);
     const channel = guild.channels.cache.get(channelId);
     if (channel) {
-      await channel.send(text);
+     if(!files_exist) {
+       await channel.send(text)
+     }else{
+       await channel.send({content:text,files:file})
+     }
     }
   } catch (error) {
     console.error(

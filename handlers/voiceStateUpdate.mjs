@@ -26,11 +26,6 @@ export default async (oldState, newState) => {//
     //);
     //}
   let changed = false
-  let new_cnt_member_size;
-  //old_cnt_member_size =　oldState.channel?.members.size
-  //new_cnt_member_size =　newState.channel?.members.size
-  //console.log(new_cnt_member_size)
-  //上記は使い勝手が悪かったので却下
   //ボイチャ参加時
   if(true){
   if (oldState.channelId === null && newState.channelId !== null){
