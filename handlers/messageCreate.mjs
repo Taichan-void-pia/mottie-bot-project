@@ -173,7 +173,7 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
                            ,'https://cdn.glitch.global/f2b08ce3-bf49-4fa1-8100-8fb7354473a2/A.jpg?v=1730245034353'
                            ,'https://cdn.glitch.global/f2b08ce3-bf49-4fa1-8100-8fb7354473a2/E.png?v=1730245028658'
                            ,'https://cdn.glitch.global/f2b08ce3-bf49-4fa1-8100-8fb7354473a2/F.png?v=1730245042284'
-                           ,'なんかすいません。'
+                           ,'https://cdn.glitch.global/ff535af0-b3e4-4845-b0db-48a0a6913b83/-2022-11-05-2.26.49-494x360.png?v=1736054149370'
                            ];
     const length_list =　Math.ceil(Math.random() *　list_of_image.length)
     await message.reply(list_of_image[length_list - 1])

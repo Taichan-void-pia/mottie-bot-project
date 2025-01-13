@@ -25,7 +25,8 @@
     "openai": "^4.68.4",
     "google-tts-api": "^2.0.2",
     "nerdamer-prime": "^1.2.2",
-    "googleapis": "^144.0.0"
+    "googleapis": "^144.0.0",
+    "minecraft-data": "^3.83.1"
   },
   "engines": {
     "node": "16.x"

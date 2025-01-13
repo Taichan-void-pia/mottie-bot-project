@@ -317,7 +317,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
 });
 client.on("messageCreate", async (message) => {
   if (message.author.id == client.user.id || message.author.bot || message.system) return; //botの場合関数から抜け出す
-    //prefixの設定
+  //prefixの設定
   const prefix = "mottie!"
   let command;
   if (message.content.slice(0,prefix.length) === prefix){
