@@ -1,94 +1,49 @@
 import { ndnDice } from "../commands/utils/dice.mjs";
 import {EmbedBuilder,ActionRowBuilder,ButtonBuilder,ButtonStyle,ChannelType} from "discord.js";
 import { execSync } from 'child_process';
-import {client,sleep} from '/app/main.mjs';
+import {client,sleep,colorcode} from '/app/main.mjs';
 import {google} from 'googleapis';
 export default async(message) => {
   
   if (message.mentions.has(message.client.user)) {
-message.reply(`<@${message.author.id}> は何か文句でも？`
-    );
+    if(Math.random() > 0.4){
+      message.reply(`<@${message.author.id}> は何か文句でも？`);
+    }else{
+      message.reply(`お疲れ様やで、イッチ(<@${message.author.id}>)。`)
+    }
   }
-  
+
   //指定した文字かどうかを確認する
-  if (message.content ===　"モッチーさん。祝って。")
-    { 
+  if (message.content ===　"モッチーさん。祝って。"){ 
       await message.channel.send("おめでとおおおおお!🎉")
       await message.delete();
     }
-  if (message.content ===　"モッチーさん。リアクション。")
-    { 
+  if (message.content ===　"モッチーさん。リアクション。"){ 
       await message.channel.send("<:1000001843:1294657068304957510><:1000001843:1294657068304957510><:1000001843:1294657068304957510>=͟͟͞💩")
       await message.delete();
     }
+
   //オウム返し
   if(message.content.startsWith("!@")){
     message.channel.send(message.content.replace("!@",""))
+    await message.delete();
     return;
   }
+
+  //ターミナル実行
   if((message.content).startsWith('exec')&&message.author.id !== "558964198994870272")return message.reply("taichan_にしか使えないのです。ごめんなさいなのです。(乗っ取りを防ぐため)")
   if ((message.content).startsWith('exec')) {
-    const detect =　((message.content).startsWith('execdl'))
-    if (detect){
-      const test = (String((message.content)).replaceAll('execdl ', String('')));
-      const result =  execSync(String(test)).toString();
+      const test = (String(message.content).replaceAll('exec ', String(''))); 
+      const result = execSync(String(test)).toString();
       message.reply(result)
-      message.delete();
-    }else {
-      const test = (String((message.content)).replaceAll('exec ', String(''))); 
-      const result =  execSync(String(test)).toString();
-      message.reply(result)
-    }
-  };
+    };
+
   //randomによるメッセージ返信
+
   if(!(message.guild.id ===　"936250852623134760")){
-  const rnd =　(Math.random() <　0.75)
-  const rnd2 = (rnd&& Math.random() <　0.25)
-  const rnd3 =　(rnd&& Math.random() < 0.6)
-  if (rnd&&message.content.match(/ぽてと|ポテト|🍟/)) {
-    await message.reply("ポテトさん。出番ですよ!")
-    try {
-    await message.react("🥔");}catch(error){console.log(error)}
-  }
-  if (rnd&&message.content.match(/けけふふ|五条|シャンクス/)) {
-    await message.reply("けけ!出番だぞ!")
-  }
-  if (rnd2&&message.content.match(/シャチ|おるか|オルカ|orca/)) {
-    await message.reply("オルカさん。術式なんすか。");
-    try {
-    await message.react("<:orca:1297460900961321001>");}catch(error){console.log(error)}
-  }
-  if (rnd3&&message.content.match(/くじら|クジラ|ホエール|whale|kujira/)) {
-    await message.reply("クジラさん。食べます。");
-    try {
-    await message.react("<:kujira:1297460911451406347>");}catch(error){console.log(error)}
-  }
-  if (message.content.match(/イルカ|いるか|iruka|dolphin/)) {
-    await message.reply("イルカさん!出番ですよ!");
-  }
-  if (message.content.match(/ショウタ|しょうた|shouta|shota|shotaaa123/)) {
-    await message.reply("ショウタさん、、、ですよね？");
-  }
-  if (message.content.match(/ゴルゴン|gorugon|ゴルっち|ごるごん/)) {
-    await message.reply("ゴルゴンさん!出番ですよ!");
-  }
-  if (rnd&&message.content.match(/メラミン|メラワン|メラニン|メラヨン|melamain|めらまいん|p1kt|白い人|ぴくと|ピクト/)) {
-    await message.reply("メラニンさん!こんにちは!");
-  }
-  if (message.content.match(/とらいあんぐる|トライアングル|三角|triangle/)) {
-    await message.reply("とら氏を召喚!||ｷｭｲｰﾝ||");
-  }
-  if (rnd&&message.content.match(/ラナヒロ|らなひろ|ひろゆき|博之|ラナイ島|ヒロ|隼/)){
+  if (message.content.match(/ラナヒロ|らなひろ|ひろゆき|博之|ラナイ島|ヒロ|隼/)){
     if(message.content.match(/ラナヒロmod/)) return;
     await message.reply("はい！どうも皆さんこんにちは！ラナヒロです！")
-    }
-  if (rnd&&message.content.match(/ヴァザ|ヴぁざ|vaza|vazafila|ヴァザフィルア|ザフィー/)) {
-    await message.reply("ヴァザさん!こんにちは!");
-  }
-  if (rnd&&message.content.match(/はくまい|hakumai|rice|ハクマイ|米/)) {
-    await message.reply("ハクマイちゃん❤️");
-    try {
-    await message.react("🍚");}catch(error){console.log(error)}
   }
   if (message.content.match(/にゃん|にゃーん|にゃ～ん|うにゃー|うにゃ～|にゃほん/)) {
     await message.reply("にゃ～ん");
@@ -114,38 +69,65 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
   if(message.content.match(/玉|魂|タマ|たま|銀魂/)){
     await message.reply("産業廃棄物やん。")
     }
-  if (message.content.match(/けけしね|けけ死ね|けけちね|ケケチネ|ｹｹﾁﾈ|死ね/)) {
-    await message.reply("ｹｹﾁﾈ");
-  }}
-  if (message.content.match(/二択|２択|2択/)) {
-    await message.reply("選べ！")
-    try {
-    message.react("1️⃣");
-    message.react("2️⃣");}catch(error){console.log(error)}
-  }
-  if (message.content.match(/三択|３択|3択/)) {
-    await message.reply("選べ！")
-    try {
-    message.react("1️⃣");
-    message.react("2️⃣");
-    message.react("3️⃣")}catch(error){console.log(error)}
-  }
-  if(!(message.guild.id ===  "936250852623134760")){
   if(message.content.match(/になれる/)) {
     await message.reply("※なれません。");
   }
   if (message.content.match(/プロ/)) {
     await message.reply("もちろんです。プロですから。😏");
   }
+
   if (message.content.match(/製作者|アップデート|nah|win|update|creater/)) {
+
     await message.reply("進捗どうですか？")
-  }}
+
+  }
+  }
+
+  if (message.content.match(/二択|２択|2択/)) {
+    await message.reply("選べ！")
+    try {
+    message.react("1️⃣");
+    message.react("2️⃣");
+    }catch(error){
+      console.log(error)
+    }
+  }
+  if (message.content.match(/三択|３択|3択/)) {
+    await message.reply("選べ！")
+    try {
+    message.react("1️⃣");
+    message.react("2️⃣");
+    message.react("3️⃣");
+    }catch(error){
+      console.log(error)
+    }
+  }
+  if (message.content.match(/四択|４択|4択/)) {
+    await message.reply("選べ！")
+    try {
+    message.react("1️⃣");
+    message.react("2️⃣");
+    message.react("3️⃣");
+    message.react("4️⃣");
+    }catch(error){
+      console.log(error)
+    }
+  }
+  
+  if(message.content.match(/はくまいちゃん|白米ちゃん/)){
+    message.channel.send("はくまいちゃん♥<:hakumai_chan:1327543460005150721>")
+  }
+  if (message.content.match(/けけしね|けけ死ね|けけちね|ケケチネ|ｹｹﾁﾈ|死ね/)) {
+    await message.reply("ｹｹﾁﾈ");
+  }
   if (message.content.match(/^\d+d\d+$/)) {
     await message.reply(ndnDice(message.content));
   }
-  //if(message.content.match(/ハロウィン|10月31日/)){
-   // await message.reply("ハッピーハロウィン!!🎃")
- // }
+
+  //if(message.content.match(/チョコ|2月14日|バレンタイン/)){
+  //  await message.reply("⁄(⁄ ⁄-⁄ω⁄-⁄ ⁄)⁄ノ🍫")
+  //}
+
   if(message.content.match(/モッチー|餅|モチ|もっちー|もち/)){
     //画像の配列
     const list_of_image = ['https://cdn.glitch.global/f2b08ce3-bf49-4fa1-8100-8fb7354473a2/unknown_3.png?v=1728355379412'
@@ -178,10 +160,12 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
     const length_list =　Math.ceil(Math.random() *　list_of_image.length)
     await message.reply(list_of_image[length_list - 1])
   }
+
   //リンク検知
-  if ((String((message.content)).includes(String('https://youtube.com/'))) || (String((message.content)).includes(String('https://vxtwitter.com/')))) {
-            message.react('💓')
-        }
+  if (message.content.includes('https://youtube.com/') || message.content.includes('https://vxtwitter.com/')){
+    message.react('💓')
+  }
+
   if ((String((message.content)).includes(String('https://x.com/')))) {
     //ツイートidとアカウントidの取得
     let messageLink = message.content.replace("https://x.com/","")
@@ -194,28 +178,31 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
         messageLink =　messageLink.replace(messageLink.slice(messageLink.indexOf("/")),"")
       }
     }
+
     const tweet_id =　messageLink
     if(author_id ===　"intent") return;
     if(author_id ===　"i") {
       author_id =　"データがないぜ！"
     }
+    
     //ボタン追加
     const row = new ButtonBuilder()
-					.setCustomId('deletelog')
-					.setLabel('🗑️')
+					.setCustomId('deletelog')					
+          .setLabel('🗑️')
 					.setStyle(ButtonStyle.Danger);
     const heart = new ButtonBuilder()
           .setCustomId('heart')
           .setLabel('いいね')
-          .setStyle(ButtonStyle.Danger)
+          .setStyle(ButtonStyle.Danger);
     const retweet = new ButtonBuilder()
           .setCustomId('retweet')
           .setLabel('リツイート')
-          .setStyle(ButtonStyle.Success)
+          .setStyle(ButtonStyle.Success);
     const reply = new ButtonBuilder()
           .setCustomId('reply')
           .setLabel('返信')
-          .setStyle(ButtonStyle.Primary)
+          .setStyle(ButtonStyle.Primary);
+    
     let discord_nickname = message.author.tag 
     if(message.channel.type === 0 && message.member.nickname != null){
       discord_nickname = message.member.nickname
@@ -226,6 +213,37 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
       message.delete();
     })
   };
+
+  if(message.channel.name.includes('global-chat')){
+    const channel_array = client.channels.cache.map(channel => [channel.name,channel.id])
+    const global_channel = channel_array.filter(name => name[0].includes('global-chat'))
+    for(let i = 0; i < global_channel.length; i++){
+      client.channels.cache.find(channel => {
+        if(channel.name === global_channel[i][0]&&channel.id === global_channel[i][1]&& message.channel.id != global_channel[i][1]) {
+          let dm_file_url;
+          if(message.attachments){
+            dm_file_url = message.attachments.map(attachment => attachment.url);
+          }
+
+          const embed = new EmbedBuilder()
+          .setDescription(message.content+'\n\n'+message.url)
+          .setURL (message.url)
+          .setAuthor({name:`${message.guild.name} | #${message.channel.name}`,iconURL: String(message.guild.iconURL())})
+          .setColor (colorcode)
+          .setFooter({text:`Author | ${message.author.username}`,iconURL:message.author.displayAvatarURL()})
+          .setTimestamp();
+          // リプライにembedを含めて送信
+          const files_exist =　message.attachments.size > 0 ;//ファイルがあるか確認
+          if(!files_exist) {
+            channel.send({embeds:[embed]});
+          }else{
+            channel.send({embeds:[embed],files:dm_file_url});
+          }
+        }           
+      })
+    }
+  };
+
   const sheets = google.sheets('v4');
   const creds = {
   "type": "service_account",
@@ -242,6 +260,7 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
     }
   const sheet = `${process.env.SheetID}`;
   const sheet_name = "DiscordGsheet"
+
   //記録書込関数
   if (message.content.startsWith("sheetreload ")) {
     const data = message.content.replace(message.content.slice(0,12),"");
@@ -255,6 +274,7 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
       message.reply("なんかよめなかった！w");
     }
   }
+
   if (message.content.startsWith("sheetwrite ")) {
     const data = message.content.replace(message.content.slice(0,11),"");
     const sheet_naming = data.slice(0,data.indexOf("/"))
@@ -266,8 +286,8 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
       console.error("データの記録中にエラーが発生しました:", error.message);
       message.reply("なんかよめなかった！w");
     }
-
   }
+
   //記録閲覧関数
   if (message.content.startsWith("sheetview ")) {
     const range = message.content.replace(message.content.slice(0,10),"");
@@ -280,6 +300,7 @@ message.reply(`<@${message.author.id}> は何か文句でも？`
       message.reply("なんかよめなかった！w");
     }
   }
+  
   // Google Sheets API を使ってデータを追加
 async function appendDataToSheet(spreadsheetId, sheetName, data) {
   const auth = await Authorize(); // 認証情報を取得
@@ -336,4 +357,5 @@ async function appendDataToSheet(spreadsheetId, sheetName, data) {
     }
   }
 };
+
             
