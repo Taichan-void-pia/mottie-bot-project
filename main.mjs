@@ -26,35 +26,33 @@ import {
 } from "@discordjs/voice";
 
 import CommandsRegister from "./regist-commands.mjs";
-//import Notification from "./models/notification.mjs";
-//import YoutubeFeeds from "./models/youtubeFeeds.mjs";
-//import YoutubeNotifications from "./models/youtubeNotifications.mjs";
 
 import Sequelize from "sequelize";
 import Parser from "rss-parser";
 const parser = new Parser();
-import OpenAI from 'openai';
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
-//import { Client as Youtubei, MusicClient } from "youtubei";
-//const youtubei = new Youtubei();
+import Together from 'together-ai';
+const together_api = new Together({
+  apiKey: process.env.TogetherAPIKey
+});
+//import OpenAI from 'openai';
+//const openai = new OpenAI({
+  //apiKey: process.env.OPENAI_API_KEY,
+//});
 
 let postCount = 0;
 const app = express();
 app.listen(3000);
 app.post("/", function (req, res) {
   console.log(`Received POST request.`);
-
   postCount++;
   if (postCount == 10) {
     trigger();
     postCount = 0;
   }
-
   res.send("POST response by glitch");
 });
+
 app.get("/", function (req, res) {
   //app.use("/",express.static('statics'))
   //res.set('Content-Type', 'text/html');
@@ -87,16 +85,13 @@ client.rest.on('rateLimited', (info) => {
   console.warn(`Rate limit hit: ${JSON.stringify(info)}`);
 });
 
-
 const categoryFoldersPath = path.join(process.cwd(), "commands");
 const commandFolders = fs.readdirSync(categoryFoldersPath);
-
 for (const folder of commandFolders) {
   const commandsPath = path.join(categoryFoldersPath, folder);
   const commandFiles = fs
     .readdirSync(commandsPath)
     .filter((file) => file.endsWith(".mjs"));
-
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
     import(filePath).then((module) => {
@@ -104,14 +99,11 @@ for (const folder of commandFolders) {
     });
   }
 }
-
 const handlers = new Map();
-
 const handlersPath = path.join(process.cwd(), "handlers");
 const handlerFiles = fs
   .readdirSync(handlersPath)
   .filter((file) => file.endsWith(".mjs"));
-
 for (const file of handlerFiles) {
   const filePath = path.join(handlersPath, file);
   import(filePath).then((module) => {
@@ -128,6 +120,7 @@ client.on("interactionCreate", async (interaction) => {
   if (interaction.customId === "delete"){
     interaction.message.delete()
   };
+  
   //チャンネル消去
   if (interaction.customId === "deletech"){
     if(interaction.user.id === "558964198994870272"||(interaction.memberPermissions.has("ADMINISTRATOR"))){
@@ -136,19 +129,23 @@ client.on("interactionCreate", async (interaction) => {
       interaction.reply("権限なんてねぇよ。正しいのは俺。")
     }
   };
+  
   //twitterAPI
   if (interaction.customId === "heart"){
     const messageLink = get_tweet_id(interaction.message.content)
     twitterAPI(interaction,"like",messageLink)
   };
+  
   if (interaction.customId === "reply"){
     const messageLink = get_tweet_id(interaction.message.content)
     interaction.reply({content:"[ここをクリック！]("+`https://x.com/intent/post?in_reply_to=${messageLink}`+")",ephemeral:true})
   };
+  
   if (interaction.customId === "retweet"){
     const messageLink = get_tweet_id(interaction.message.content)
     twitterAPI(interaction,"retweet",messageLink)
   };
+  
   function get_tweet_id(text){
     let messageLink = text.replace("https://fxtwitter.com/","")
     messageLink = messageLink.match(/(\d{17,20})/)
@@ -157,6 +154,7 @@ client.on("interactionCreate", async (interaction) => {
   function twitterAPI(i,type,tweet_id){
     i.reply({content:"[ここをクリック！]("+`https://x.com/intent/${type}?tweet_id=${tweet_id}`+")",ephemeral:true})
   }
+  
   //チケットツール
   if (interaction.customId === "return") {
     await interaction.reply({
@@ -183,6 +181,7 @@ client.on("interactionCreate", async (interaction) => {
 					.setLabel('チャンネルを削除')
 					.setStyle(ButtonStyle.Danger),
 			);
+      
       await interaction.guild.channels.create({
           name:("意見" + userName + interaction.user.id),　
           type:ChannelType.GuildText,
@@ -223,6 +222,7 @@ client.on("interactionCreate", async (interaction) => {
         });
     }
   }
+  
   if (interaction.customId === "role1") {
     const guild = await interaction.guild.fetch();
     const member = await guild.members.fetch(interaction.member.user.id, {
@@ -255,6 +255,7 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
   }
+  
   if (interaction.customId === "role2") {
     const guild = await interaction.guild.fetch();
     const member = await guild.members.fetch(interaction.member.user.id, {
@@ -276,6 +277,7 @@ client.on("interactionCreate", async (interaction) => {
     });
     rolesetup(interaction,member,"ラナヒロ三等兵")
   }
+  
   function rolesetup(i,members,rolename) {
     const memberrole =　i.guild.roles.cache.find((role)　=>　role.name === rolename)
     if(!memberrole) return i.reply({content:rolename+"はないみたい！w",ephemetal:true})
@@ -305,6 +307,7 @@ client.on("interactionCreate", async (interaction) => {
 
 //Googlettsのインポート
 import googleTTS from 'google-tts-api';
+
 //ボイスコネクションをマップに保存
 const voiceConnections = new Map();
 
@@ -315,8 +318,10 @@ await handlers.get("voiceStateUpdate").default(oldState, newState);
 client.on("messageReactionAdd", async (reaction, user) => {
   await handlers.get("messageReactionAdd").default(reaction, user);
 });
+
 client.on("messageCreate", async (message) => {
   if (message.author.id == client.user.id || message.author.bot || message.system) return; //botの場合関数から抜け出す
+  
   //prefixの設定
   const prefix = "mottie!"
   let command;
@@ -336,6 +341,13 @@ client.on("messageCreate", async (message) => {
     const targetGuild = await client.guilds.fetch(guildId);
     const targetChannel = targetGuild.channels.cache.get(channelId);
     const targetMessage = await targetChannel.messages.fetch(messageId);
+    let replyMessage;
+    try{
+    replyMessage = await targetMessage.fetchReference()}
+    catch{
+    replyMessage = undefined;
+    }
+      
     //ファイル取得
     let dm_file_url;
     if(targetMessage.attachments){
@@ -343,12 +355,13 @@ client.on("messageCreate", async (message) => {
     }
     //embedの設定
  　　  const embed = new EmbedBuilder()
-      .setDescription(String(( targetMessage.content + "\n\n" + targetMessage.url)))
+      .setDescription(targetMessage.content + "\n\n" + targetMessage.url+(replyMessage != undefined ? ("\n\n**"+replyMessage.author.username+"**への返信\n内容:"+replyMessage.content+"\nURL:"+replyMessage.url):""))
       .setURL (targetMessage.url)
       .setAuthor({name:String(`${targetGuild.name} | #${targetChannel.name}`),iconURL: String(targetGuild.iconURL())})
       .setColor ("#1e28d2")
-      .setFooter({text:String(`Author |　${targetMessage.author.username}`),
+      .setFooter({text:String(`Author | ${targetMessage.author.username}`),
                  iconURL:String(targetMessage.author.displayAvatarURL())});
+      
     // リプライにembedを含めて送信
     const files_exist =　targetMessage.attachments.size > 0 ;//ファイルがあるか確認
     if(!files_exist) {
@@ -360,6 +373,7 @@ client.on("messageCreate", async (message) => {
       console.error("メッセージの送信中にエラーが発生しました。:",error)
     }
   }
+  
   //時間を取得
   if (command === "time"){
     //タイムゾーンを設定
@@ -368,24 +382,30 @@ client.on("messageCreate", async (message) => {
     const day = date.getFullYear() + '年' + ('0' + (date.getMonth() + 1)).slice(-2) + '月' +('0' + date.getDate()).slice(-2) + '日 ' +  ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2) + ':' + ('0' + date.getSeconds()).slice(-2) + '秒';
     message.reply("今は**"+day+"**です。")
   }
+  
   //chatgpt 1ドル払え
-   //if(message.content.startsWith("chatgpt ")) {
-   //  try {
-    // const test = (String((message.content)).replaceAll('chatgpt ', String('')));
-    // 送信されたメッセージをpromptに設定
-   // const completion = await openai.chat.completions.create({
-     // messages: [{ role: 'user', content: `${test}`}],
-     // model: 'gpt-4o',
-  //  });
-   // if (completion.choices[0].message.content === undefined) throw new Error();
-    
-    // メッセージが送信されたチャンネルに、GPT-4の返信を送信
-  //  await message.channel.send(completion.choices[0].message.content);
- // } catch (err) {
-　//　 message.reply("なんかすいません。")
-  //  console.log(err);
-//  };
-  // }
+   if(message.content.startsWith("chatai ")) {
+     const test = (String((message.content)).replaceAll('chatai ', String('')));
+     const msg = await message.reply("**考えてるんだよ！**")
+     //送信されたメッセージをpromptに設定
+     const completion = await together_api.chat.completions
+       .create({
+         messages: [{ role: 'user', content: `${test}ただし、出来るだけ短くし、長くなりそうな時は300文字以内で簡潔にお願いします。`}],
+         model: 'deepseek-ai/DeepSeek-V3',
+       })
+       .catch(async (err) => {
+         if (err instanceof Together.APIError) {
+           console.log(err.status);
+           console.log(err.name); 
+           console.log(err.headers); 
+         } else {
+           throw err;
+         }
+       }
+             );
+     //メッセージが送信されたチャンネルに、返信を送信
+     msg.edit(completion.choices[0].message.content);
+   }
   
   //DM対応
   if (message.channel.type === ChannelType.DM) {
@@ -448,8 +468,6 @@ async function sendMottie(text,file,attach) {
     );
   }
 }//endpoint.
-  
-  
   //読み上げテキスト送信
   if (message.content.startsWith('tts ')){
   const connecting = message.member.voice.channel
@@ -478,11 +496,13 @@ const connection = joinVoiceChannel({
             inputType: StreamType.Arbitrary,
         });
   　　　　player.play(resource);
-  }catch(error){console.log(error)}
+  }catch(error){
+    console.log(error)
   }
+  }
+  
   //目安箱生成
   if (command === ("return")) {
-
     const tic1 = new ButtonBuilder()
       .setCustomId("return") //buttonにIDを割り当てる   *必須
       .setStyle(ButtonStyle.Primary) //buttonのstyleを設定する  *必須
@@ -491,12 +511,12 @@ const connection = joinVoiceChannel({
      .setTitle("目安箱")
      .setColor("#213a70")
      .setDescription("製作陣や運営メンバーに直接相談できる場所です。\nMODに関する「お問い合わせ」やサーバーへの要望、サーバー内のトラブルに対応する「目安箱」としてもご利用いただけます。")
-    
     await message.channel.send({
       embeds: [embed],
       components: [new ActionRowBuilder().addComponents(tic1)],
     });
   }
+  
   if (command === "return2") {
     const button1 =　new ButtonBuilder()
     .setCustomId("role1")
@@ -556,10 +576,11 @@ function listMembersWithRole(guildId, roleId, channel) {
     : `> **${role.name}** ロールを持っている人間はいません！`;
   channel.send(responseMessage);
 }
+  
   //ボイチャ接続時間を取得して表示
-  const Regex = "vctimelist"; // コマンドの正規表現
-  if (command === Regex) {
-    listMembersSumJoining(message.guild.id,message.channel);
+  if (command === "vctimelist") {
+    message.reply("現在使用出来ません")
+    //listMembersSumJoining(message.guild.id,message.channel);
     }
 function listMembersSumJoining(guildId,channel) {
   let test
@@ -615,9 +636,7 @@ function listMembersSumJoining(guildId,channel) {
   
   if(command ===　"join"){
    // コマンドを実行したメンバーがいるボイスチャンネルを取得
-
      const channel = message.member.voice.channel;
-
      // コマンドを実行したメンバーがボイスチャンネルに入ってなければ処理を止める
      if (!channel) return
      // チャンネルに参加
@@ -629,7 +648,6 @@ function listMembersSumJoining(guildId,channel) {
       selfMute: false,
      });
      const player = createAudioPlayer();
-
      connection.subscribe(player);
      // 動画の音源を取得
 　　 const rnd = Math.random()
@@ -651,6 +669,7 @@ function listMembersSumJoining(guildId,channel) {
        player.play(resource);
      }
    };
+  
   if(message.content.startsWith("mottie!play")){
    // コマンドを実行したメンバーがいるボイスチャンネルを取得
     const channel = message.member.voice.channel;
@@ -702,12 +721,9 @@ function listMembersSumJoining(guildId,channel) {
    };
   
   if (command === "quit"){
-  
      //ボットがボイスチャンネルに接続されているか確認
     const botVoiceChannel = message.guild.members.cache.get(client.user.id)
       ?.voice.channel;
-
-
     if (botVoiceChannel) {
       message.reply("ハイピクセルやろ！あ、呼ばれたから落ちる。");
       const channel = message.member.voice.channel;
@@ -720,10 +736,8 @@ function listMembersSumJoining(guildId,channel) {
      });
       connection.destroy();
 }};
-  
   await handlers.get("messageCreate").default(message);
 });//message endpoint.
-
 client.on("ready", async () => {
   await client.user.setActivity("🙃", {
     type: ActivityType.Custom,
@@ -732,10 +746,6 @@ client.on("ready", async () => {
   console.log(`${client.user.tag} がログインしました！`);
 });
 
-//notification.sync({ alter: true });
-//YoutubeFeeds.sync({ alter: true });
-//YoutubeNotifications.sync({ alter: true });
-
 CommandsRegister();
 client.login(process.env.TOKEN);
-
+      
