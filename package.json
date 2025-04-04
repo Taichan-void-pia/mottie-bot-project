@@ -25,7 +25,7 @@
     "google-tts-api": "^2.0.2",
     "nerdamer-prime": "^1.2.4",
     "together-ai": "^0.13.0",
-    "minecraft-data": "^3.84.1",
+    "minecraft-data": "^3.85.0",
     "googleapis": "^146.0.0"
   },
   "engines": {
