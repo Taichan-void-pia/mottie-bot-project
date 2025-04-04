@@ -23,6 +23,7 @@ import {
   entersState, 
   AudioPlayerStatus,  
   StreamType,
+  getVoiceConnection,
 } from "@discordjs/voice";
 
 import CommandsRegister from "./regist-commands.mjs";
@@ -468,38 +469,6 @@ async function sendMottie(text,file,attach) {
     );
   }
 }//endpoint.
-  //読み上げテキスト送信
-  if (message.content.startsWith('tts ')){
-  const connecting = message.member.voice.channel
-  if(!connecting) return message.reply("先にボイスチャンネルに接続に接続して下さい!")
-  try{
-            // GCP使わない場合はこっち
-            // 音声ファイルのURLが取得できます。
-    　　　　　let text =　message.content.replaceAll('tts ','')
-            text =　(`${message.author.username}、`+text) 
-            let url = googleTTS.getAudioUrl(text, {
-                lang: 'ja',
-                slow: false,
-                host: 'https://translate.google.com',
-            });
-        // ボイスチャットセッションの音声プレイヤーに音声ファイルのURLを指定して再生させます。
-const connection = joinVoiceChannel({
-      adapterCreator: connecting.guild.voiceAdapterCreator,
-      channelId: connecting.id,
-      guildId: connecting.guild.id,
-      selfDeaf: true,
-      selfMute: false,
-     });
-        const player = createAudioPlayer();
-     　　connection.subscribe(player);
-        const resource = createAudioResource(url, {
-            inputType: StreamType.Arbitrary,
-        });
-  　　　　player.play(resource);
-  }catch(error){
-    console.log(error)
-  }
-  }
   
   //目安箱生成
   if (command === ("return")) {
@@ -670,41 +639,71 @@ function listMembersSumJoining(guildId,channel) {
      }
    };
   
-  if(message.content.startsWith("mottie!play")){
+  //読み上げテキスト送信
+  const user_vc = message.member?.voice.channel
+  const logic_r = user_vc&&message.guild.members.cache.get(client.user.id)?.voice.channel; //client.channels.cache.get(user_vc.id).members.map(userids => userids.user.id　===　client.user.id)
+  if (logic_r){
+  try{
+
+    //VCを取得
+    const connection = getVoiceConnection(user_vc.guildId);
+    
+    const regex = /((h?)(ttps?:\/\/[a-zA-Z0-9.\-_@:/~?%&;=+#',()*!]+))/g;
+    const text = (`${message.author.username}、${message.content.replace(regex ,"リンク省略")}`)
+    const url = googleTTS.getAudioUrl(text, {
+      lang: 'ja',
+      slow: false,
+      host: 'https://translate.google.com',
+    });
+
+    // ボイスチャットセッションの音声プレイヤーに音声ファイルのURLを指定して再生させます。
+    const player = createAudioPlayer();
+    connection.subscribe(player);
+    const resource = createAudioResource(url, {
+      inputType: StreamType.Arbitrary,
+    });
+
+    player.play(resource);
+  }catch(error){
+    console.log(error)
+  }
+  }
+  
+  //if(message.content.startsWith("mottie!play")){
    // コマンドを実行したメンバーがいるボイスチャンネルを取得
-    const channel = message.member.voice.channel;
+   // const channel = message.member?.voice.channel;
      // コマンドを実行したメンバーがボイスチャンネルに入ってなければ処理を止める
-    if (!channel) return message.reply('先にボイスチャンネルに参加してください！');
+    //if (!channel) return message.reply('先にボイスチャンネルに参加してください！');
      // チャンネルに参加
-    const connection = joinVoiceChannel({
-      adapterCreator: channel.guild.voiceAdapterCreator,
-      channelId: channel.id,
-      guildId: channel.guild.id,
-      selfDeaf: true,
-      selfMute: false,
-     });
-    const player = createAudioPlayer({behaviors:{noSubscriber: NoSubscriberBehavior.Play}});
-    let link = "none"
-    if(message.content.includes("link:")){
-      link =　message.content.slice(message.content.indexOf("link:")+5)
-    let dm_file_url;
-    if(message.attachments){
-      dm_file_url = message.attachments.map(attachment => attachment.url)
-      link = dm_file_url[0]
-            }
-    }
-    if(link === "none"){
-      if (Math.random() <　0.5){
-        const resource = createAudioResource("https://cdn.glitch.global/f2b08ce3-bf49-4fa1-8100-8fb7354473a2/%E8%BB%A2%E7%94%9F%E3%83%A2%E3%83%83%E3%83%81%E3%83%BC.mp3?v=1728991585501")
-        await player.play(resource)
-      }else{
-        const resource = createAudioResource("https://cdn.glitch.global/f2b08ce3-bf49-4fa1-8100-8fb7354473a2/%E3%83%A2%E3%83%83%E3%83%81%E3%83%BC%E3%83%AF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%A9%E3%83%B3%E3%83%89.mp3?v=1728558019434")
-        await player.play(resource);
-      }
-    }else{
-      const resource = createAudioResource(link)
-      await player.play(resource);
-    }
+    //const connection = joinVoiceChannel({
+      //adapterCreator: channel.guild.voiceAdapterCreator,
+   //   channelId: channel.id,
+     // guildId: channel.guild.id,
+      //selfDeaf: true,
+     // selfMute: false,
+    // });
+  //  const player = createAudioPlayer({behaviors:{noSubscriber: NoSubscriberBehavior.Play}});
+   // let link = "none"
+    //if(message.content.includes("link:")){
+      //link =　message.content.slice(message.content.indexOf("link:")+5)
+   // let dm_file_url;
+    //if(message.attachments){
+      //dm_file_url = message.attachments.map(attachment => attachment.url)
+      //link = dm_file_url[0]
+           // }
+    //}
+   // if(link === "none"){
+     // if (Math.random() <　0.5){
+       // const resource = createAudioResource("https://cdn.glitch.global/f2b08ce3-bf49-4fa1-8100-8fb7354473a2/%E8%BB%A2%E7%94%9F%E3%83%A2%E3%83%83%E3%83%81%E3%83%BC.mp3?v=1728991585501")
+      //  await player.play(resource)
+      //}else{
+       // const resource = createAudioResource("https://cdn.glitch.global/f2b08ce3-bf49-4fa1-8100-8fb7354473a2/%E3%83%A2%E3%83%83%E3%83%81%E3%83%BC%E3%83%AF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%A9%E3%83%B3%E3%83%89.mp3?v=1728558019434")
+      //  await player.play(resource);
+     // }
+    //}else{
+      //const resource = createAudioResource(link)
+     // await player.play(resource);
+   // }
     //player.on("stateChange", (oldState, newState) => {
         //  if (newState.status === "idle") {
             // 再生が終了したときに再度再生
@@ -717,8 +716,8 @@ function listMembersSumJoining(guildId,channel) {
             //}
           //}
       //  });
-    connection.subscribe(player);
-   };
+   // connection.subscribe(player);
+  // };
   
   if (command === "quit"){
      //ボットがボイスチャンネルに接続されているか確認
@@ -727,15 +726,10 @@ function listMembersSumJoining(guildId,channel) {
     if (botVoiceChannel) {
       message.reply("ハイピクセルやろ！あ、呼ばれたから落ちる。");
       const channel = message.member.voice.channel;
-         const connection = joinVoiceChannel({
-      adapterCreator: channel.guild.voiceAdapterCreator,
-      channelId: channel.id,
-      guildId: channel.guild.id,
-      selfDeaf: true,
-      selfMute: false,
-     });
+      const connection = getVoiceConnection(channel.guildId);
       connection.destroy();
-}};
+    };
+};
   await handlers.get("messageCreate").default(message);
 });//message endpoint.
 client.on("ready", async () => {

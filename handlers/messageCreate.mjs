@@ -24,9 +24,10 @@ export default async(message) => {
     }
 
   //オウム返し
-  if(message.content.startsWith("!@")){
+  const message_ex = message.content.startsWith("!@")
+  if(message_ex||Math.random() < 0.01){
     message.channel.send(message.content.replace("!@",""))
-    await message.delete();
+    message_ex ? await message.delete() : null;
     return;
   }
 
@@ -166,24 +167,15 @@ export default async(message) => {
     message.react('💓')
   }
 
-  if ((String((message.content)).includes(String('https://x.com/')))) {
-    //ツイートidとアカウントidの取得
-    let messageLink = message.content.replace("https://x.com/","")
-    let author_id =　messageLink.slice(0,messageLink.indexOf("/"))
-    messageLink =　messageLink.replace(messageLink.slice(0,messageLink.indexOf("/")+8),"")
-    if(messageLink.match(/(\d.+)/)){
-      if(messageLink.includes("?")){
-        messageLink =　messageLink.replace(messageLink.slice(messageLink.indexOf("?")),"")
-      }else{
-        messageLink =　messageLink.replace(messageLink.slice(messageLink.indexOf("/")),"")
-      }
-    }
-
-    const tweet_id =　messageLink
+  if (message.content.includes('https://x.com/')) {
+    const trim = message.content.match(/((h?)(ttps?:\/\/[a-zA-Z0-9.\-_@:/~?%&;=+#',()*!]+))/);
+    const url = trim[0]
+    //アカウントidの取得
+    const url_trim = url.replace("https://x.com/","")
+    const author = url_trim.slice(0,url_trim.indexOf("/")) 
+    
+    const author_id = (author === "i" ? "データが無いぜ！" : author)
     if(author_id ===　"intent") return;
-    if(author_id ===　"i") {
-      author_id =　"データがないぜ！"
-    }
     
     //ボタン追加
     const row = new ButtonBuilder()
@@ -192,57 +184,46 @@ export default async(message) => {
 					.setStyle(ButtonStyle.Danger);
     const heart = new ButtonBuilder()
           .setCustomId('heart')
-          .setLabel('いいね')
+          .setLabel('❤️')
           .setStyle(ButtonStyle.Danger);
     const retweet = new ButtonBuilder()
           .setCustomId('retweet')
-          .setLabel('リツイート')
+          .setLabel('🔁')
           .setStyle(ButtonStyle.Success);
     const reply = new ButtonBuilder()
           .setCustomId('reply')
-          .setLabel('返信')
+          .setLabel('💬')
           .setStyle(ButtonStyle.Primary);
-    
-    let discord_nickname = message.author.tag 
-    if(message.channel.type === 0 && message.member.nickname != null){
-      discord_nickname = message.member.nickname
-    }
-    message.channel.send({content: String(message.content.replaceAll('x.com','fxtwitter.com') + '\nAccount | ' +String(author_id)+"\nAuthor | "+discord_nickname),components:[new ActionRowBuilder().addComponents(reply,heart,retweet,row)]
+    //discordの鯖のニックネームを取得
+    const discord_nickname = message.channel.type === 0 && message.member.nickname != null ? message.member.nickname : message.author.tag
+
+    message.channel.send({
+      content: String(message.content.replaceAll('x.com','fxtwitter.com') + '\nAccount | ' + author_id +"\nAuthor | "+discord_nickname),
+      components:[new ActionRowBuilder().addComponents(reply,heart,retweet,row)]
                          }).then(async (sendreact) => {
       sendreact.react("💓") //送ったメッセージにリアクション
       message.delete();
     })
   };
 
-  if(message.channel.name.includes('global-chat')){
-    const channel_array = client.channels.cache.map(channel => [channel.name,channel.id])
-    const global_channel = channel_array.filter(name => name[0].includes('global-chat'))
-    for(let i = 0; i < global_channel.length; i++){
-      client.channels.cache.find(channel => {
-        if(channel.name === global_channel[i][0]&&channel.id === global_channel[i][1]&& message.channel.id != global_channel[i][1]) {
-          let dm_file_url;
-          if(message.attachments){
-            dm_file_url = message.attachments.map(attachment => attachment.url);
-          }
-
-          const embed = new EmbedBuilder()
-          .setDescription(message.content+'\n\n'+message.url)
-          .setURL (message.url)
-          .setAuthor({name:`${message.guild.name} | #${message.channel.name}`,iconURL: String(message.guild.iconURL())})
-          .setColor (colorcode)
-          .setFooter({text:`Author | ${message.author.username}`,iconURL:message.author.displayAvatarURL()})
-          .setTimestamp();
-          // リプライにembedを含めて送信
-          const files_exist =　message.attachments.size > 0 ;//ファイルがあるか確認
-          if(!files_exist) {
-            channel.send({embeds:[embed]});
-          }else{
-            channel.send({embeds:[embed],files:dm_file_url});
-          }
-        }           
-      })
+  if (message.channel.name.includes('global-chat')) {
+  const global_channels = client.channels.cache.filter(channel =>channel.name.includes('global-chat') && channel.id !== message.channel.id);
+  const embed = new EmbedBuilder()
+    .setDescription(message.content+"\n\n"+message.url)
+    .setURL(message.url)
+    .setAuthor({name:`${message.guild.name} | #${message.channel.name}`,iconURL:String(message.guild.iconURL()),})
+    .setColor(colorcode)
+    .setFooter({text:`Author | ${message.author.username}`,iconURL: message.author.displayAvatarURL(),})
+    .setTimestamp();
+  global_channels.forEach(channel => {
+    const files_exist =　message.attachments.size > 0 ? message.attachments.map(attachment => attachment.url) : null;//ファイルがあるか確認
+    if(files_exist) {
+      channel.send({embeds:[embed],files:files_exist});
+    }else{
+      channel.send({embeds:[embed]});
     }
-  };
+  });
+}
 
   const sheets = google.sheets('v4');
   const creds = {
