@@ -180,18 +180,4 @@ export default async (oldState, newState) => {//
     console.log(`stdout: ${stdout}`);
       });
   }
-  function mergeArrays(arr1, arr2) {
-  const result = [...arr1];
-  arr2.forEach((obj2) => {
-    const index = result.findIndex((obj1) => obj1.name === obj2.name);
-    if (index !== -1) {
-      // 同じ名前のオブジェクトが存在する場合、マージする
-      result[index] = { ...result[index], ...obj2 };
-    } else {
-      // 存在しない場合、新しいオブジェクトを追加する
-      result.push(obj2);
-    }
-  });
-  return result;
-}
 };

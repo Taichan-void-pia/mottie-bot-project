@@ -5,12 +5,7 @@ export default async(reaction, user) => {
   const message =　reaction.message;
   const member = await message.guild.members.fetch(user);
   if (user.bot) return;
-  //編集済ならループから抜け出す。
-  //if (message.editedAt) {
-   // message.reply("壁、修復済み(編集済)");
-  //  return;
-    
- // }
+  
   if(reaction.emoji.name === "❤️"){
     message.react("❤️")
   }
