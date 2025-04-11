@@ -148,9 +148,10 @@ client.on("interactionCreate", async (interaction) => {
   };
   
   function get_tweet_id(text){
-    let messageLink = text.replace("https://fxtwitter.com/","")
-    messageLink = messageLink.match(/(\d{17,20})/)
-    return messageLink[0];
+    const messageLink = /https:\/\/fxtwitter\.com\/(.+)\/status\/(\d+)/;
+    //ツイートidの取得
+    const match = text.match(messageLink)
+    return match[2];
   }
   function twitterAPI(i,type,tweet_id){
     i.reply({content:"[ここをクリック！]("+`https://x.com/intent/${type}?tweet_id=${tweet_id}`+")",ephemeral:true})
@@ -329,51 +330,7 @@ client.on("messageCreate", async (message) => {
   if (message.content.slice(0,prefix.length) === prefix){
   command =　message.content.replace(message.content.slice(0,prefix.length),"")
   }
-  
   //clientを必要とする機能によるメッセージ返信
-  const messageLinkRegex = /https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
-  const match = message.content.match(messageLinkRegex);
-  if (match) {
-    try{
-    //メッセージ箇所取得
-    const guildId = match[1];
-    const channelId = match[2];
-    const messageId = match[3];
-    const targetGuild = await client.guilds.fetch(guildId);
-    const targetChannel = targetGuild.channels.cache.get(channelId);
-    const targetMessage = await targetChannel.messages.fetch(messageId);
-    let replyMessage;
-    try{
-    replyMessage = await targetMessage.fetchReference()}
-    catch{
-    replyMessage = undefined;
-    }
-      
-    //ファイル取得
-    let dm_file_url;
-    if(targetMessage.attachments){
-      dm_file_url = targetMessage.attachments.map(attachment => attachment.url);
-    }
-    //embedの設定
- 　　  const embed = new EmbedBuilder()
-      .setDescription(targetMessage.content + "\n\n" + targetMessage.url+(replyMessage != undefined ? ("\n\n**"+replyMessage.author.username+"**への返信\n内容:"+replyMessage.content+"\nURL:"+replyMessage.url):""))
-      .setURL (targetMessage.url)
-      .setAuthor({name:String(`${targetGuild.name} | #${targetChannel.name}`),iconURL: String(targetGuild.iconURL())})
-      .setColor ("#1e28d2")
-      .setFooter({text:String(`Author | ${targetMessage.author.username}`),
-                 iconURL:String(targetMessage.author.displayAvatarURL())});
-      
-    // リプライにembedを含めて送信
-    const files_exist =　targetMessage.attachments.size > 0 ;//ファイルがあるか確認
-    if(!files_exist) {
-      await message.reply({embeds:[embed]});
-    }else{
-      await message.reply({embeds:[embed],files:dm_file_url});
-    }
-    }catch(error){
-      console.error("メッセージの送信中にエラーが発生しました。:",error)
-    }
-  }
   
   //時間を取得
   if (command === "time"){

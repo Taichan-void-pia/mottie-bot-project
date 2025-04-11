@@ -25,7 +25,7 @@ export default async(message) => {
 
   //オウム返し
   const message_ex = message.content.startsWith("!@")
-  if(message_ex||Math.random() < 0.01){
+  if(message_ex||Math.random() < 0.002){
     message.channel.send(message.content.replace("!@",""))
     message_ex ? await message.delete() : null;
     return;
@@ -168,13 +168,10 @@ export default async(message) => {
   }
 
   if (message.content.includes('https://x.com/')) {
-    const trim = message.content.match(/((h?)(ttps?:\/\/[a-zA-Z0-9.\-_@:/~?%&;=+#',()*!]+))/);
-    const url = trim[0]
+    const messageLinkRegex = /https:\/\/x\.com\/(.+)\/status\/(\d+)/;
+    const match = message.content.match(messageLinkRegex)
     //アカウントidの取得
-    const url_trim = url.replace("https://x.com/","")
-    const author = url_trim.slice(0,url_trim.indexOf("/")) 
-    
-    const author_id = (author === "i" ? "データが無いぜ！" : author)
+    const author_id = (match[1] === "i" ? "データが無いぜ！" : match[1])
     if(author_id ===　"intent") return;
     
     //ボタン追加
@@ -200,12 +197,12 @@ export default async(message) => {
     message.channel.send({
       content: String(message.content.replaceAll('x.com','fxtwitter.com') + '\nAccount | ' + author_id +"\nAuthor | "+discord_nickname),
       components:[new ActionRowBuilder().addComponents(reply,heart,retweet,row)]
-                         }).then(async (sendreact) => {
+    }).then(async (sendreact) => {
       sendreact.react("💓") //送ったメッセージにリアクション
       message.delete();
     })
   };
-
+//global-chatという名前が含まれているチャンネルとグローバルチャットをするための物
   if (message.channel.name.includes('global-chat')) {
   const global_channels = client.channels.cache.filter(channel =>channel.name.includes('global-chat') && channel.id !== message.channel.id);
   const embed = new EmbedBuilder()
@@ -224,6 +221,39 @@ export default async(message) => {
     }
   });
 }
+  //リンク先のメッセージをembedで展開
+  const messageLinkRegex = /https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
+  const match = message.content.match(messageLinkRegex);
+  if (match) {
+    try{
+    //メッセージ箇所取得
+    const [link,guildId,channelId,messageId] = match;
+    const targetGuild = await client.guilds.fetch(guildId);
+    const targetChannel = targetGuild.channels.cache.get(channelId);
+    const targetMessage = await targetChannel.messages.fetch(messageId);
+    
+    const replyMessage = await targetMessage.fetchReference().catch(() => null);
+      
+    //embedの設定
+ 　　  const embed = new EmbedBuilder()
+      .setDescription("内容:"+targetMessage.content + "\nURL:" +`[メッセージへのリンク](${targetMessage.url})`+(replyMessage != null ? ("\n\n**"+replyMessage.author.username+"**への返信\n内容:"+replyMessage.content+"\nURL:"+`[返信メッセージへのリンク](${replyMessage.url})`):""))
+      .setURL (targetMessage.url)
+      .setAuthor({name:String(`${targetGuild.name} | #${targetChannel.name}`),iconURL: String(targetGuild.iconURL())})
+      .setColor (colorcode)
+      .setFooter({text:String(`Author | ${targetMessage.author.username}`),
+                 iconURL:String(targetMessage.author.displayAvatarURL())});
+
+    // リプライにembedを含めて送信
+    const files_exist =　message.attachments.size > 0 ? message.attachments.map(attachment => attachment.url) : null;//ファイルがあるか確認
+    if(files_exist) {
+      message.reply({embeds:[embed],files:files_exist});
+    }else{
+      message.reply({embeds:[embed]});
+    }
+    }catch(error){
+      console.error("メッセージの送信中にエラーが発生しました。:",error)
+    }
+  }
 
   const sheets = google.sheets('v4');
   const creds = {
